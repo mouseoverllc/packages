@@ -1,0 +1,23 @@
+{
+  "name": "quill-image-resizer",
+  "version": "0.0.1",
+  "description": "A module for Quill editor to enable resizing of images",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "quill",
+    "image",
+    "resizer",
+    "editor",
+    "module"
+  ],
+  "author": "MouseOver",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}
