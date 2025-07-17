@@ -7,23 +7,42 @@
   <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
   <script defer src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
   <script defer src="../dist/quill-image-resizer.js"></script>
+  <link rel="stylesheet" href="../dist/style.css">
+  <style>
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+  </style>
 </head>
 <body>
-  <div id="editor">
-    <p>Hello World!</p>
-    <p>Some initial <strong>bold</strong> text</p>
-    <p><br /></p>
+  <div class="container">
+    <div id="editor" style="height: 600px;">
+      <p>Hello World!</p>
+      <p>Some initial <strong>bold</strong> text</p>
+      <p><br /></p>
+      <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolorem atque quis velit, mollitia minima eos. Velit, deleniti. Iste amet ullam, alias quia officia laudantium quis doloribus sit, assumenda aperiam harum porro! Saepe itaque amet ipsa odio! Dolore, vero pariatur consectetur inventore expedita doloremque culpa ipsum iure quos voluptatibus natus nobis.</p>
+      <p>Tempora, eos odit! Nemo provident officia placeat, amet molestias totam similique molestiae, aperiam numquam quam ipsum quae itaque voluptatibus maiores ut. Corrupti nobis eum tempore sed obcaecati itaque amet necessitatibus illo! Adipisci consequuntur iste nihil explicabo ratione, nam nobis! Quidem fugiat a quod ad, cupiditate sit mollitia magni unde incidunt.</p>
+      <p>Libero sapiente perspiciatis, accusantium expedita possimus odio asperiores, harum atque inventore aut eius eveniet magni sunt non amet nostrum, eligendi voluptatem dignissimos repudiandae totam accusamus nam cupiditate consectetur? Sed quos nostrum tempora quae illo, culpa praesentium itaque maiores magnam aperiam ipsam cumque fugit distinctio delectus rerum animi a? Suscipit, consequatur.</p>
+      <p>Laborum esse porro voluptatibus, fugiat eum rerum facere beatae sequi nesciunt earum doloremque amet corporis quam harum recusandae vitae doloribus! Dicta a est dolore sit. Eos asperiores odit eum ratione autem perspiciatis debitis molestiae assumenda sequi temporibus, consequatur, minus earum praesentium quidem qui quas nostrum? Tempora nam in expedita beatae?</p>
+      <p>Excepturi rerum accusantium totam fuga minus tenetur doloremque tempore nisi veritatis sit veniam delectus iure corrupti, natus recusandae inventore magni repellendus saepe at illo earum nulla accusamus cumque molestiae. Nesciunt dicta dolor, asperiores recusandae repellat a ab magni delectus odio nam sit corrupti nostrum culpa, minus voluptates harum et cum.</p>
+      <img src="https://placehold.co/600x400" />
+      <p><br /></p>
+    </div>
   </div>
   <script>
 
     document.addEventListener('DOMContentLoaded', () => {
+      Quill.register('modules/imageResizer', QuillImageResizer);
+
       const quill = new Quill('#editor', {
         theme: 'snow',
         modules: {
           toolbar: [
             ['bold', 'italic', 'underline', 'strike'],
             ['image']
-          ]
+          ],
+          imageResizer: {}
         }
       });
     })

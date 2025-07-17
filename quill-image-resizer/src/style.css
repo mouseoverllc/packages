@@ -1,0 +1,40 @@
+.qir_resize-overlay {
+  position: absolute;
+  border: 1px dotted #000;
+  box-sizing: border-box;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.qir_resize-handler {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  right: -6px;
+  bottom: -6px;
+  background: #000;
+  cursor: nwse-resize;
+  pointer-events: auto;
+}
+
+.qir_delete-button {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 32px;
+  height: 32px;
+  background-image: url(./trash.svg);
+  background-size: 16px;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: rgb(255, 255, 255);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 14px;
+  z-index: 200;
+  pointer-events: auto;
+  border: 1px solid #ededed;
+}

@@ -1,6 +1,7 @@
 {
+  "open": false,
   "server": {
-    "baseDir": ["./", "./demo", "./dist"],
+    "baseDir": ["./", "./demo"],
     "port": 12345
   },
   "files": ["./dist/**/*", "./demo/**/*"]
