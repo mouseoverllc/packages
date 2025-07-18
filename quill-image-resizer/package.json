@@ -1,6 +1,6 @@
 {
   "name": "@mouseoverllc/quill-image-resizer",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "author": "MouseOver",
   "description": "A lightweight plugin for Quill.js to resize images interactively.",
   "keywords": [

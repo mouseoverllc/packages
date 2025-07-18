@@ -172,9 +172,6 @@ export default class QuillImageResizer {
     const startWidth = this.selectedImage.width;
     const startHeight = this.selectedImage.height;
 
-    const initialDisplay = this.selectedImage.style.display;
-    this.selectedImage.style.display = 'block';
-
     const aspectRatio = startHeight / startWidth;
 
     const MIN_DIMENSION = 10; // Minimum dimension for the image
@@ -215,7 +212,6 @@ export default class QuillImageResizer {
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
 
-      this.selectedImage!.style.display = initialDisplay;
       this.updateImageBlotDimensions();
 
       this.isResizing = false;
