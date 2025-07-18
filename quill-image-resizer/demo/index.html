@@ -6,7 +6,7 @@
   <title>Document</title>
   <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
   <script defer src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
-  <script defer src="../dist/quill-image-resizer.js"></script>
+  <script defer src="../dist/quill-image-resizer.umd.min.js"></script>
   <link rel="stylesheet" href="../dist/style.css">
   <style>
     .container {
@@ -42,7 +42,14 @@
             ['bold', 'italic', 'underline', 'strike'],
             ['image']
           ],
-          imageResizer: {}
+          imageResizer: {
+            keepAspectRatio: true,
+            resizerProps: {
+              style: {
+                backgroundColor: 'red',
+              }
+            }
+          }
         }
       });
     })

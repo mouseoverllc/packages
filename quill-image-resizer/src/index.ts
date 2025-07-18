@@ -1,6 +1,36 @@
 import Quill from 'quill';
 
-import './style.css'; // Assuming your CSS for overlay and handles is here
+import './style.css'; // Assuming your base CSS for overlay and handles is here
+
+// Define interfaces for the new prop types
+interface OverlayProps {
+  className?: string; // Optional class name(s)
+  style?: Partial<CSSStyleDeclaration>; // Optional inline styles
+}
+
+interface ResizerProps {
+  className?: string; // Optional class name(s)
+  style?: Partial<CSSStyleDeclaration>; // Optional inline styles
+}
+
+// Define an interface for the overall options
+interface QuillImageResizerOptions {
+  /**
+   * Whether to maintain the image's aspect ratio during resizing.
+   * @default true
+   */
+  keepAspectRatio?: boolean;
+  /**
+   * Properties to apply to the image resize overlay element.
+   * Can include `className` (e.g., 'my-custom-overlay') and `style` (inline CSS).
+   */
+  overlayProps?: OverlayProps;
+  /**
+   * Properties to apply to the resize handle element.
+   * Can include `className` (e.g., 'my-custom-resizer-handle') and `style` (inline CSS).
+   */
+  resizerProps?: ResizerProps;
+}
 
 /**
  * A Quill.js module for resizing and deleting images.
@@ -8,19 +38,27 @@ import './style.css'; // Assuming your CSS for overlay and handles is here
  */
 export default class QuillImageResizer {
   private quill: Quill;
+  private options: QuillImageResizerOptions;
   private overlay: HTMLDivElement | null = null;
   private selectedImage: HTMLImageElement | null = null;
   private resizerHandle: HTMLDivElement | null = null;
-  private deleteButton: HTMLButtonElement | null = null; // Store delete button reference for cleanup
+  private deleteButton: HTMLButtonElement | null = null;
 
   private isResizing: boolean = false; // Flag to indicate if an image is currently being resized
 
   /**
    * Initializes the QuillImageResizer module.
    * @param quill The Quill editor instance.
+   * @param options Optional configuration for the resizer.
    */
-  constructor(quill: Quill) {
+  constructor(quill: Quill, options?: QuillImageResizerOptions) {
     this.quill = quill;
+    // Set default options and merge with provided options
+    this.options = {
+      keepAspectRatio: true,
+      ...options
+    };
+
     this.addEventListeners();
   }
 
@@ -30,10 +68,7 @@ export default class QuillImageResizer {
   private addEventListeners() {
     this.quill.root.addEventListener('click', this.handleEditorClick);
     this.quill.root.addEventListener('scroll', this.updateOverlayPosition);
-    // Listen for editor blur to deselect image when focus leaves the editor
     this.quill.on('editor-blur', this.removeOverlay);
-
-    // Use a dedicated handler for text-change to conditionally remove overlay
     this.quill.on('text-change', this.handleTextChange);
   }
 
@@ -57,7 +92,6 @@ export default class QuillImageResizer {
     if (target && target.tagName === 'IMG') {
       this.selectImage(target as HTMLImageElement);
     } else if (this.overlay && !this.overlay.contains(target)) {
-      // If click is outside the image and overlay, remove the overlay
       this.removeOverlay();
     }
   };
@@ -67,42 +101,52 @@ export default class QuillImageResizer {
    * @param img The HTMLImageElement to be selected.
    */
   private selectImage(img: HTMLImageElement) {
-    // If the same image is clicked, just ensure overlay is positioned correctly
     if (this.selectedImage === img) {
       this.updateOverlayPosition();
       return;
     }
 
-    this.removeOverlay(); // Remove any existing overlays before creating a new one
+    this.removeOverlay();
     this.selectedImage = img;
 
     this.createOverlay();
-    this.updateOverlayPosition(); // Initial positioning
+    this.updateOverlayPosition();
     this.addResizeHandle();
     this.addDeleteButton();
 
-    // Set the selected image as non-draggable to prevent browser's default drag behavior
-    this.selectedImage.setAttribute('draggable', 'false');
+    this.selectedImage.setAttribute('draggable', 'false'); // Prevent native image dragging
   }
 
   /**
-   * Creates the main resize overlay div.
+   * Creates the main resize overlay div and applies custom props.
    */
   private createOverlay() {
     this.overlay = document.createElement('div');
-    this.overlay.className = 'qir_resize-overlay';
-    // Append to the Quill editor's container to ensure correct positioning relative to the editor
+    // Ensure base class is always present, then add any custom class names
+    this.overlay.className = `qir_resize-overlay ${this.options.overlayProps?.className || ''}`.trim();
+
+    // Apply custom inline styles
+    if (this.options.overlayProps?.style) {
+      Object.assign(this.overlay.style, this.options.overlayProps.style);
+    }
+
     this.quill.root.parentElement!.appendChild(this.overlay);
   }
 
   /**
-   * Adds the resize handle to the overlay.
+   * Adds the resize handle to the overlay and applies custom props.
    */
   private addResizeHandle() {
     if (!this.overlay) return;
 
     this.resizerHandle = document.createElement('div');
-    this.resizerHandle.className = 'qir_resize-handler';
+    // Ensure base class is always present, then add any custom class names
+    this.resizerHandle.className = `qir_resize-handler ${this.options.resizerProps?.className || ''}`.trim();
+
+    // Apply custom inline styles
+    if (this.options.resizerProps?.style) {
+      Object.assign(this.resizerHandle.style, this.options.resizerProps.style);
+    }
 
     this.resizerHandle.addEventListener('mousedown', this.onMouseDownResize);
 
@@ -111,39 +155,55 @@ export default class QuillImageResizer {
 
   /**
    * Handles the mouse down event on the resize handle to start resizing.
+   * Respects the `keepAspectRatio` option.
+   * Editor boundary checks are removed as requested.
    * @param event The mouse event.
    */
   private onMouseDownResize = (event: MouseEvent) => {
     event.preventDefault();
-    event.stopPropagation(); // Prevent Quill from handling the click
+    event.stopPropagation();
 
     if (!this.selectedImage) return;
 
-    this.isResizing = true; // Set flag: we are now resizing
+    this.isResizing = true;
 
     const startX = event.clientX;
-    // const startY = event.clientY; // Not used for aspect ratio based resizing
+    const startY = event.clientY; // Keep for vertical resize when aspect ratio is off
     const startWidth = this.selectedImage.width;
     const startHeight = this.selectedImage.height;
 
     const initialDisplay = this.selectedImage.style.display;
-    // this.selectedImage.style.display = 'block'; // Ensure image is block for accurate width/height setting
+    this.selectedImage.style.display = 'block';
 
-    // Calculate aspect ratio only once
     const aspectRatio = startHeight / startWidth;
+
+    const MIN_DIMENSION = 10; // Minimum dimension for the image
 
     const onMouseMove = (e: MouseEvent) => {
       e.preventDefault();
-      e.stopPropagation(); // Crucial: Stop propagation of mousemove to prevent text-change trigger
+      e.stopPropagation();
 
       const deltaX = e.clientX - startX;
+      const deltaY = e.clientY - startY; // Vertical delta
 
-      let newWidth = Math.max(10, startWidth + deltaX); // Minimum width of 10px
-      let newHeight = newWidth * aspectRatio; // Maintain aspect ratio
+      let newWidth: number;
+      let newHeight: number;
 
-      // Ensure minimum dimensions
-      if (newWidth < 10) newWidth = 10;
-      if (newHeight < 10) newHeight = 10;
+      if (this.options.keepAspectRatio) {
+        // Only consider horizontal drag for resizing and maintain aspect ratio
+        newWidth = Math.max(MIN_DIMENSION, startWidth + deltaX);
+        newHeight = newWidth * aspectRatio;
+
+        // Apply minimum height if calculated height goes below MIN_DIMENSION
+        if (newHeight < MIN_DIMENSION) {
+            newHeight = MIN_DIMENSION;
+            newWidth = MIN_DIMENSION / aspectRatio; // Adjust width to maintain aspect ratio with new minimum height
+        }
+      } else {
+        // Allow independent resizing based on both horizontal and vertical drag
+        newWidth = Math.max(MIN_DIMENSION, startWidth + deltaX);
+        newHeight = Math.max(MIN_DIMENSION, startHeight + deltaY);
+      }
 
       this.selectedImage!.width = newWidth;
       this.selectedImage!.height = newHeight;
@@ -155,10 +215,10 @@ export default class QuillImageResizer {
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
 
-      this.selectedImage!.style.display = initialDisplay; // Restore original display style
-      this.updateImageBlotDimensions(); // Update Quill's internal representation
+      this.selectedImage!.style.display = initialDisplay;
+      this.updateImageBlotDimensions();
 
-      this.isResizing = false; // Reset flag: resizing has finished
+      this.isResizing = false;
 
       // After resize, if the image is still selected, ensure overlay is correctly positioned
       if (this.selectedImage) {
@@ -178,10 +238,10 @@ export default class QuillImageResizer {
     if (!this.selectedImage || !this.overlay) return;
 
     const rect = this.selectedImage.getBoundingClientRect();
-    const containerRect = this.quill.root.getBoundingClientRect();
+    const containerRect = this.quill.root.getBoundingClientRect(); // Rect of the .ql-editor
 
-    // Position the overlay relative to the Quill editor's root element
-    // Account for scroll position of the editor's root
+    // Position the overlay relative to the Quill editor's root element (.ql-editor)
+    // Account for scroll position of the editor's root to keep overlay fixed relative to image in editor view
     this.overlay.style.top = `${rect.top - containerRect.top}px`;
     this.overlay.style.left = `${rect.left - containerRect.left}px`;
     this.overlay.style.width = `${rect.width}px`;
@@ -207,7 +267,7 @@ export default class QuillImageResizer {
     this.resizerHandle = null;
     this.deleteButton = null;
 
-    // Reset draggable attribute
+    // Reset draggable attribute on the image if it was set
     if (this.selectedImage) {
       this.selectedImage.removeAttribute('draggable');
     }
@@ -239,14 +299,15 @@ export default class QuillImageResizer {
   private addDeleteButton() {
     if (!this.overlay) return;
 
-    this.deleteButton = document.createElement('button');
-    this.deleteButton.className = 'qir_delete-button';
-    this.deleteButton.title = 'Delete image';
-    this.deleteButton.innerHTML = '&times;'; // A simple 'x' for the button content
+    const button = document.createElement('button');
+    button.className = 'qir_delete-button';
+    button.title = 'Delete image';
+    button.innerHTML = '&times;'; // A simple 'x' for the button content
 
-    this.deleteButton.addEventListener('click', this.deleteImage);
+    button.addEventListener('click', this.deleteImage);
 
-    this.overlay.appendChild(this.deleteButton);
+    this.overlay.appendChild(button);
+    this.deleteButton = button; // Assign to property for cleanup
   }
 
   /**
@@ -264,7 +325,7 @@ export default class QuillImageResizer {
       blot.domNode.setAttribute('height', `${this.selectedImage.height}`);
 
       // If you're using a custom Quill blot for images that relies on
-      // styles or formats, you might need to use quill.formatText
+      // styles or formats, you might need to use quill.formatText.
       // Example (assuming a custom 'image' blot that accepts width/height formats):
       // const index = this.quill.getIndex(blot);
       // this.quill.formatText(index, 1, {

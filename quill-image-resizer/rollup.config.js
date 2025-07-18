@@ -8,19 +8,35 @@ import { terser } from 'rollup-plugin-terser';
 export default {
   input: 'src/index.ts',
   output: [
+    // ESM build
     {
-      file: 'dist/quill-image-resizer.js',
+      file: 'dist/quill-image-resizer.esm.js',
+      format: 'es',
+      sourcemap: false
+    },
+    // CommonJS build
+    {
+      file: 'dist/quill-image-resizer.cjs.js',
+      format: 'cjs',
+      sourcemap: false,
+      exports: 'auto'
+    },
+    // UMD build (optional, usually for <script> tag use)
+    {
+      file: 'dist/quill-image-resizer.umd.js',
       format: 'umd',
-      name: 'QuillImageResizer',
-      sourcemap: true,
+      name: 'QuillImageResizer', // Global variable name if used in <script>
+      sourcemap: false,
+      exports: 'auto'
     },
     {
-      file: 'dist/quill-image-resizer.min.js',
+      file: 'dist/quill-image-resizer.umd.min.js', // Output file name
       format: 'umd',
-      name: 'QuillImageResizer',
-      sourcemap: true,
+      name: 'QuillImageResizer', // Global variable name when loaded in browser
+      sourcemap: false,
+      exports: 'auto',
       plugins: [terser()]
-    },
+    }
   ],
   plugins: [
     typescript(),
