@@ -283,7 +283,8 @@ export default class QuillImageResizer {
       const blot = this.quill.scroll.find(this.selectedImage);
       if (blot) {
         const index = this.quill.getIndex(blot);
-        this.quill.deleteText(index, blot.length());
+        this.quill.deleteText(index, blot.length(), 'user');
+        this.quill.setSelection(index, index + blot.length(), 'silent');
       }
     }
     this.removeOverlay(); // Clean up overlay after deletion
