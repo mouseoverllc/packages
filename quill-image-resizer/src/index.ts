@@ -272,21 +272,17 @@ export default class QuillImageResizer {
 
   /**
    * Deletes the currently selected image from the Quill editor.
-   */
-  private deleteImage = (event?: MouseEvent) => {
-    if (event) {
-      event.stopPropagation(); // Prevent the click from propogating to the editor
-    }
-
-    if (this.selectedImage) {
-      // Get the blot associated with the image and delete it
-      const blot = this.quill.scroll.find(this.selectedImage);
-      if (blot) {
-        const index = this.quill.getIndex(blot);
-        this.quill.deleteText(index, blot.length(), 'user');
-        this.quill.setSelection(index, index + blot.length(), 'silent');
-      }
-    }
+  */
+ private deleteImage = async (event?: MouseEvent) => {
+    if (event) event.stopPropagation(); // Prevent the click from propogating to the editor
+    if (!this.selectedImage) return;
+    // Get the blot associated with the image and delete it
+    const blot = this.quill.scroll.find(this.selectedImage);
+    if ( !blot ) return;
+    const index = this.quill.getIndex(blot);
+    const length = blot.length();
+    this.quill.deleteText(index, length, 'user'); // sometimes works properly now
+    this.quill.setSelection(index, 0, 'silent');
     this.removeOverlay(); // Clean up overlay after deletion
   };
 
